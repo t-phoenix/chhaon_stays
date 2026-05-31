@@ -14,6 +14,7 @@ export default function GuideLayout({ children }) {
           </Link>
           <nav className="guide-header-nav">
             <Link to="/guides">All guides</Link>
+            <Link to="/gallery">Gallery</Link>
             <Link to="/book" className="guide-header-cta">
               Book stay <ArrowRight size={16} aria-hidden="true" />
             </Link>

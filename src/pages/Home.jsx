@@ -30,6 +30,7 @@ import {
   REVIEWS,
   ROUTES,
 } from '../data/siteData';
+import InstagramGalleryPreview from '../components/InstagramGalleryPreview';
 import '../App.css';
 
 const Instagram = ({ size = 24, className }) => (
@@ -96,6 +97,7 @@ function Home() {
           <a href="#stay" className="nav-link" onClick={closeMenu}>Stay</a>
           <a href="#cafe" className="nav-link" onClick={closeMenu}>Cafe</a>
           <a href="#explore" className="nav-link" onClick={closeMenu}>Explore</a>
+          <a href="#moments" className="nav-link" onClick={closeMenu}>Moments</a>
           <Link to="/book" className="btn-primary nav-cta" onClick={closeMenu}>Book Your Stay</Link>
         </div>
 
@@ -322,6 +324,8 @@ function Home() {
           </Link>
         </div>
       </section>
+
+      <InstagramGalleryPreview />
 
       {/* Reviews */}
       <section id="reviews" className="section reviews-section">
