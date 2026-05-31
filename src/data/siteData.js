@@ -52,7 +52,7 @@ export const SITE = {
 };
 
 export const IMAGES = {
-  hero: '/images/chhaon/p3.jpg',
+  hero: '/images/chhaon/Hero.jpg',
   story: ['/images/chhaon/p1.jpg', '/images/chhaon/p2.jpg', '/images/chhaon/p4.jpg'],
   stay: {
     private: '/images/chhaon/p5.jpg',
@@ -67,7 +67,7 @@ export const IMAGES = {
     { src: '/images/chhaon/p4.jpg', alt: 'Jibhi waterfall' },
     { src: '/images/chhaon/hidden-waterfall.jpg', alt: 'Hidden waterfalls near Shoja' },
   ],
-  og: '/images/chhaon/p3.jpg',
+  og: '/images/chhaon/Hero.jpg',
 };
 
 export const STAY_OPTIONS = [

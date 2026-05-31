@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { SITE } from '../data/siteData';
 
-const DEFAULT_OG = '/images/chhaon/p3.jpg';
+const DEFAULT_OG = '/images/chhaon/Hero.jpg';
 
 export default function SeoHead({
   title,

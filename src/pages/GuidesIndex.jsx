@@ -11,7 +11,7 @@ export default function GuidesIndex() {
         title="Shoja & Tirthan Valley Travel Guides | Chhaon Stays"
         description="Free travel guides for Shoja, Jalori Pass, Serolsar Lake, Jibhi, and Tirthan Valley — written by the team at Chhaon Stays mountain hostel."
         path="/guides"
-        image="/images/chhaon/p3.jpg"
+        image="/images/chhaon/Hero.jpg"
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'CollectionPage',

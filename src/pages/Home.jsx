@@ -114,7 +114,7 @@ function Home() {
         <div className="hero-media">
           <img
             src={IMAGES.hero}
-            alt="Mountain view from Chhaon Stays, Shoja, Himachal Pradesh"
+            alt="Guests sharing a book in a cozy wood-paneled dorm at Chhaon Stays, Shoja, with mountain views through the window"
             className="hero-img kenburns"
             fetchPriority="high"
           />

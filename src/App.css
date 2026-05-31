@@ -86,6 +86,7 @@
 .hero-section {
   position: relative;
   min-height: 100svh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -93,6 +94,10 @@
   color: var(--text-light);
   overflow: hidden;
   background: var(--bg-forest-dark);
+  /* Focal point: top bunk guest — always anchor image from the top edge */
+  --hero-focus-x: 70%;
+  --hero-zoom-x: 72%;
+  --hero-zoom-y: 18%;
 }
 
 .hero-media {
@@ -105,22 +110,33 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: var(--hero-focus-x) top;
 }
 
 .hero-img.kenburns {
-  animation: kenburns 22s ease-out forwards;
+  animation: kenburns 32s ease-out forwards;
+  transform-origin: var(--hero-zoom-x) var(--hero-zoom-y);
+  will-change: transform;
 }
 
 .hero-overlay-radial {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 60% 40%, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.55) 70%, rgba(20, 30, 25, 0.85) 100%);
+  background: radial-gradient(
+    ellipse 125% 95% at 22% 58%,
+    rgba(20, 30, 25, 0.86) 0%,
+    rgba(20, 30, 25, 0.42) 38%,
+    rgba(0, 0, 0, 0.06) 62%,
+    transparent 85%
+  );
 }
 
 .hero-overlay-gradient {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), transparent 40%, rgba(30, 51, 41, 0.7));
+  background:
+    linear-gradient(to right, rgba(20, 30, 25, 0.58) 0%, rgba(20, 30, 25, 0.14) 46%, transparent 68%),
+    linear-gradient(to bottom, transparent 0%, transparent 52%, rgba(30, 51, 41, 0.45) 100%);
 }
 
 .hero-particles {
@@ -1728,6 +1744,11 @@ a.form-submit-btn {
   .navbar.scrolled {
     padding: 0.9rem 2rem;
   }
+  .hero-section {
+    --hero-focus-x: 74%;
+    --hero-zoom-x: 76%;
+    --hero-zoom-y: 16%;
+  }
   .hero-title {
     font-size: 4rem;
   }
@@ -1763,7 +1784,27 @@ a.form-submit-btn {
     padding: 5rem 5% 4rem;
   }
   .hero-section {
-    padding: 6rem 5% 4rem;
+    align-items: flex-end;
+    padding: 5.5rem 5% 5.5rem;
+    --hero-focus-x: 78%;
+    --hero-zoom-x: 80%;
+    --hero-zoom-y: 14%;
+  }
+  .hero-overlay-radial {
+    background: radial-gradient(
+      ellipse 110% 75% at 50% 92%,
+      rgba(20, 30, 25, 0.9) 0%,
+      rgba(20, 30, 25, 0.38) 42%,
+      transparent 68%
+    );
+  }
+  .hero-overlay-gradient {
+    background:
+      linear-gradient(to top, rgba(20, 30, 25, 0.78) 0%, rgba(20, 30, 25, 0.28) 38%, transparent 58%),
+      linear-gradient(to right, rgba(20, 30, 25, 0.2) 0%, transparent 55%);
+  }
+  .hero-content {
+    max-width: 100%;
   }
   .hero-title {
     font-size: 3.2rem;
@@ -1831,5 +1872,78 @@ a.form-submit-btn {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
+  }
+}
+
+/* Hero image — responsive focal point (top-anchored, top-bunk guest) */
+@media (min-width: 1440px) {
+  .hero-section {
+    --hero-focus-x: 66%;
+    --hero-zoom-x: 68%;
+    --hero-zoom-y: 17%;
+  }
+}
+
+@media (min-width: 1800px) {
+  .hero-section {
+    --hero-focus-x: 62%;
+    --hero-zoom-x: 64%;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    --hero-focus-x: 82%;
+    --hero-zoom-x: 84%;
+    --hero-zoom-y: 12%;
+    padding-bottom: 4.5rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero-section {
+    --hero-focus-x: 86%;
+    --hero-zoom-x: 88%;
+  }
+}
+
+@media (max-height: 520px) and (orientation: landscape) {
+  .hero-section {
+    align-items: center;
+    padding: 4.5rem 6% 3rem;
+    --hero-focus-x: 72%;
+    --hero-zoom-x: 74%;
+    --hero-zoom-y: 12%;
+  }
+
+  .hero-overlay-radial {
+    background: radial-gradient(
+      ellipse 90% 100% at 24% 50%,
+      rgba(20, 30, 25, 0.88) 0%,
+      rgba(20, 30, 25, 0.4) 40%,
+      transparent 70%
+    );
+  }
+
+  .hero-overlay-gradient {
+    background:
+      linear-gradient(to right, rgba(20, 30, 25, 0.65) 0%, rgba(20, 30, 25, 0.15) 50%, transparent 72%),
+      linear-gradient(to bottom, transparent 0%, rgba(30, 51, 41, 0.35) 100%);
+  }
+
+  .hero-title {
+    font-size: 2.6rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .hero-cursive {
+    font-size: 2.2rem;
+  }
+
+  .scroll-indicator {
+    bottom: 1rem;
   }
 }
