@@ -1,0 +1,347 @@
+.guide-layout {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-main);
+}
+
+.guide-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(242, 238, 228, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.guide-header-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.guide-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--bg-dark-green);
+}
+
+.guide-header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.guide-header-nav a {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.guide-header-nav a:hover {
+  color: var(--accent-brown);
+}
+
+.guide-header-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-dark-green);
+  color: var(--text-light) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-weight: 600;
+}
+
+.guide-header-cta:hover {
+  background: var(--bg-forest-dark);
+}
+
+.guide-article {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.guide-hero-img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius);
+  margin-bottom: 2rem;
+}
+
+.guide-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.guide-article h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 2.75rem);
+  font-weight: 600;
+  color: var(--bg-dark-green);
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.guide-excerpt {
+  font-size: 1.15rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+  margin-bottom: 2.5rem;
+  border-left: 3px solid var(--accent-brown);
+  padding-left: 1.25rem;
+}
+
+.guide-section {
+  margin-bottom: 2.5rem;
+}
+
+.guide-section h2 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--bg-dark-green);
+  margin-bottom: 1rem;
+}
+
+.guide-section p {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--text-main);
+  margin-bottom: 1rem;
+}
+
+.guide-section ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.guide-section li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.guide-section li::before {
+  content: '';
+  display: block;
+  margin-top: 0.55rem;
+  width: 12px;
+  height: 4px;
+  background: var(--accent-brown);
+  flex-shrink: 0;
+}
+
+.guide-cta-box {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin: 3rem 0;
+  text-align: center;
+}
+
+.guide-cta-box h3 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  color: var(--bg-dark-green);
+  margin-bottom: 0.75rem;
+}
+
+.guide-cta-box p {
+  color: var(--text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.guide-cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.guide-related {
+  border-top: 1px solid var(--border-light);
+  padding-top: 2.5rem;
+  margin-top: 2rem;
+}
+
+.guide-related h2 {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  color: var(--bg-dark-green);
+  margin-bottom: 1.25rem;
+}
+
+.guide-related-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.guide-related-list a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  font-weight: 500;
+  color: var(--bg-dark-green);
+}
+
+.guide-related-list a:hover {
+  background: var(--border-light);
+  color: var(--accent-brown);
+}
+
+.guide-footer {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+  border-top: 1px solid var(--border-light);
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.guide-footer a {
+  color: var(--accent-brown);
+  font-weight: 600;
+}
+
+/* Guides index */
+.guides-index {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 4rem;
+}
+
+.guides-index-header {
+  margin-bottom: 3rem;
+}
+
+.guides-index-header .section-label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.guides-index-header h1 {
+  font-family: var(--font-serif);
+  font-size: clamp(2rem, 5vw, 3rem);
+  color: var(--bg-dark-green);
+  margin-bottom: 1rem;
+}
+
+.guides-index-header p {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  max-width: 42rem;
+}
+
+.guides-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .guides-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.guide-card-link {
+  display: block;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border-light);
+  transition: var(--transition);
+}
+
+.guide-card-link:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.guide-card-img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+}
+
+.guide-card-body {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.guide-card-body h2 {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  color: var(--bg-dark-green);
+  margin-bottom: 0.5rem;
+}
+
+.guide-card-body p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+  margin-bottom: 0.75rem;
+}
+
+.guide-card-meta {
+  font-size: 0.8rem;
+  color: var(--accent-brown);
+  font-weight: 600;
+}
+
+.explore-guides-cta {
+  margin-top: 2.5rem;
+  text-align: center;
+}
+
+.explore-guides-cta a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--accent-brown);
+  font-size: 1.05rem;
+}
+
+.explore-guides-cta a:hover {
+  color: var(--accent-brown-hover);
+}
+
+.guide-home-cta {
+  border: 1.5px solid var(--bg-dark-green);
+  color: var(--bg-dark-green) !important;
+  background: transparent;
+  padding: 1rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.guide-home-cta:hover {
+  background: var(--bg-dark-green);
+  color: var(--text-light) !important;
+}
