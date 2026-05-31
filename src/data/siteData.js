@@ -65,7 +65,7 @@ export const IMAGES = {
     { src: '/images/chhaon/p2.jpg', alt: 'Raghupur Fort trail' },
     { src: '/images/chhaon/p1.jpg', alt: 'Serolsar Lake trek' },
     { src: '/images/chhaon/p4.jpg', alt: 'Jibhi waterfall' },
-    { src: '/images/chhaon/p6.jpg', alt: 'Hidden waterfalls near Shoja' },
+    { src: '/images/chhaon/hidden-waterfall.jpg', alt: 'Hidden waterfalls near Shoja' },
   ],
   og: '/images/chhaon/p3.jpg',
 };
@@ -159,7 +159,7 @@ export const EXPLORE_SPOTS = [
     title: 'Hidden Waterfalls',
     distance: 'ask Amrit',
     note: 'The ones that are not on Google Maps.',
-    image: 'https://images.unsplash.com/photo-1437310711650-77c1a113ebec?auto=format&fit=crop&w=900&q=80',
+    image: '/images/chhaon/hidden-waterfall.jpg',
     span: 'wide',
   },
   {

@@ -231,8 +231,7 @@ export const GUIDES = [
       'offbeat Shoja',
       'secret places Shoja',
     ],
-    heroImage:
-      'https://images.unsplash.com/photo-1437310711650-77c1a113ebec?auto=format&fit=crop&w=1200&q=80',
+    heroImage: '/images/chhaon/hidden-waterfall.jpg',
     distance: 'Ask Amrit at Chhaon',
     readTime: '4 min read',
     published: '2026-05-31',
