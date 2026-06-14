@@ -13,17 +13,26 @@ from typing import List, Optional, Annotated, Any
 
 import bcrypt
 import jwt
+import certifi
 from bson import ObjectId
 from pymongo import ReturnDocument
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, Request, Response, Query
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, ConfigDict, BeforeValidator
 
 # -------------------- DB --------------------
-mongo_url = os.environ['MONGO_URL']
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ['DB_NAME']]
+def _create_mongo_client() -> AsyncIOMotorClient:
+    url = os.environ["MONGO_URL"].strip().strip('"').strip("'")
+    kwargs: dict = {"serverSelectionTimeoutMS": 10_000}
+    if url.startswith("mongodb+srv://") or "tls=true" in url.lower():
+        kwargs["tlsCAFile"] = certifi.where()
+    return AsyncIOMotorClient(url, **kwargs)
+
+
+client = _create_mongo_client()
+db = client[os.environ["DB_NAME"]]
 
 # -------------------- App --------------------
 app = FastAPI(title="Chhaon Cafe Ops")
@@ -1637,8 +1646,24 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    if isinstance(exc, HTTPException):
+        raise exc
+    logger.exception("Unhandled error on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+
+
 @app.on_event("startup")
 async def startup_event():
+    try:
+        await client.admin.command("ping")
+        logger.info("MongoDB ping OK (db=%s)", os.environ.get("DB_NAME"))
+    except Exception as e:
+        logger.error(
+            "MongoDB ping FAILED — verify MONGO_URL, Atlas IP allowlist (0.0.0.0/0), and cluster status: %s",
+            e,
+        )
     try:
         await _seed()
         logger.info("Seed completed")
