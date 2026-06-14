@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Chhaon Cafe Ops</string>
+    <string name="title_activity_main">Chhaon Cafe Ops</string>
+    <string name="package_name">com.chhaon.cafeops</string>
+    <string name="custom_url_scheme">com.chhaon.cafeops</string>
+</resources>

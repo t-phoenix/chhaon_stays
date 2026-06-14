@@ -1,0 +1,34 @@
+# Secrets — never commit real values
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+.venv-*/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+
+# Build output (frontend/.gitignore also covers /build)
+build/
+dist/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Capacitor / native local caches (keep ios/ and android/ project sources)
+**/DerivedData/
+**/.gradle/
+**/local.properties

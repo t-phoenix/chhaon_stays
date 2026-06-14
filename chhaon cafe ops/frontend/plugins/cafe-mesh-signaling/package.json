@@ -1,0 +1,14 @@
+{
+  "name": "cafe-mesh-signaling",
+  "version": "1.0.0",
+  "description": "LAN WebSocket signaling for Chhaon Cafe mesh",
+  "main": "dist/plugin.cjs.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "capacitor": {
+    "ios": { "src": "ios" },
+    "android": { "src": "android" }
+  },
+  "files": ["dist/", "android/", "ios/"],
+  "peerDependencies": { "@capacitor/core": "^8.0.0" }
+}

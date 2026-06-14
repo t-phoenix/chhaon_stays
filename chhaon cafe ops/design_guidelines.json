@@ -1,0 +1,145 @@
+{
+  "theme": "Light",
+  "archetype": "Organic & Earthy",
+  "vibe": "Cozy, hand-crafted, mountain-cabin warmth, behavioural addicting ops system",
+  "typography": {
+    "fonts": [
+      {
+        "name": "Caveat",
+        "type": "heading",
+        "url": "https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&display=swap",
+        "usage": "H1, H2, large display numbers, empty state messaging, brand greetings"
+      },
+      {
+        "name": "Figtree",
+        "type": "body",
+        "url": "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap",
+        "usage": "All UI text, body paragraphs, buttons, badges, tables, order details"
+      }
+    ],
+    "scale": {
+      "h1": "text-4xl sm:text-5xl font-bold font-['Caveat'] tracking-tight text-[#2D372B]",
+      "h2": "text-3xl sm:text-4xl font-semibold font-['Caveat'] text-[#2D372B]",
+      "h3": "text-xl sm:text-2xl font-semibold font-['Figtree'] text-[#2D372B]",
+      "h4": "text-lg font-semibold font-['Figtree'] text-[#2D372B]",
+      "body": "text-base font-['Figtree'] text-[#5C665A]",
+      "small": "text-sm font-['Figtree'] text-[#5C665A]",
+      "tiny": "text-xs font-semibold uppercase tracking-[0.1em] font-['Figtree'] text-[#8A9A86]"
+    }
+  },
+  "colors": {
+    "background": {
+      "default": "#F9F6F0",
+      "surface": "#FFFFFF",
+      "card": "#FFFFFF",
+      "accent": "#F1ECE1"
+    },
+    "brand": {
+      "primary": "#8A9A86",
+      "primary_hover": "#788774",
+      "secondary": "#B88A6B",
+      "secondary_hover": "#A5795C",
+      "accent": "#E6DFD3"
+    },
+    "text": {
+      "primary": "#2D372B",
+      "secondary": "#5C665A",
+      "inverse": "#FFFFFF"
+    },
+    "border": {
+      "subtle": "#E6DFD3",
+      "strong": "#D1C7B4"
+    },
+    "kanban_status": {
+      "new": {
+        "bg": "#FDF0F0",
+        "text": "#D96C6C",
+        "border": "#F8DADA"
+      },
+      "preparing": {
+        "bg": "#FEF5EC",
+        "text": "#E6A15C",
+        "border": "#FCE5CF"
+      },
+      "ready": {
+        "bg": "#F2F7F1",
+        "text": "#7B9E73",
+        "border": "#DFEADF"
+      },
+      "served": {
+        "bg": "#F5F6F5",
+        "text": "#A3A8A1",
+        "border": "#E6E8E6"
+      }
+    }
+  },
+  "spacing_and_layout": {
+    "philosophy": "Generous Spacing (Tailwind Scale)",
+    "container_padding": "p-6 md:p-8",
+    "section_gap": "gap-8 md:gap-12",
+    "item_gap": "gap-4 md:gap-6",
+    "touch_targets": "min-h-[48px] min-w-[48px] (Mobile-first standard)",
+    "border_radius": {
+      "card": "rounded-2xl",
+      "button": "rounded-xl",
+      "badge": "rounded-full",
+      "input": "rounded-xl"
+    },
+    "shadows": {
+      "soft_ambient": "shadow-[0_4px_20px_rgba(138,154,134,0.08)]",
+      "floating_action": "shadow-[0_8px_30px_rgba(184,138,107,0.15)]",
+      "card_hover": "shadow-[0_8px_25px_rgba(138,154,134,0.12)]"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#8A9A86] hover:bg-[#788774] text-white font-['Figtree'] font-semibold rounded-xl px-6 py-3 transition-transform active:scale-95",
+      "secondary": "bg-[#B88A6B] hover:bg-[#A5795C] text-white font-['Figtree'] font-semibold rounded-xl px-6 py-3 transition-transform active:scale-95",
+      "outline": "border-2 border-[#E6DFD3] text-[#2D372B] hover:bg-[#F1ECE1] font-['Figtree'] font-semibold rounded-xl px-6 py-3 transition-transform active:scale-95",
+      "ghost": "text-[#5C665A] hover:text-[#2D372B] hover:bg-[#F1ECE1] font-['Figtree'] font-semibold rounded-xl px-4 py-2"
+    },
+    "cards": {
+      "default": "bg-white rounded-2xl p-4 sm:p-6 shadow-[0_4px_20px_rgba(138,154,134,0.08)] border border-[#E6DFD3]/50 transition-all duration-200",
+      "kanban_ticket": "bg-white rounded-2xl p-4 shadow-[0_2px_10px_rgba(138,154,134,0.06)] border border-[#E6DFD3] hover:shadow-[0_8px_25px_rgba(138,154,134,0.12)] hover:-translate-y-1 transition-all duration-200 cursor-pointer active:scale-[0.98]"
+    },
+    "inputs": {
+      "default": "w-full bg-[#F9F6F0] border border-[#E6DFD3] rounded-xl px-4 py-3 text-[#2D372B] font-['Figtree'] focus:outline-none focus:ring-2 focus:ring-[#8A9A86]/50 focus:border-[#8A9A86] transition-all"
+    },
+    "badges": {
+      "base": "px-3 py-1 rounded-full text-sm font-semibold font-['Figtree'] inline-flex items-center gap-1.5"
+    }
+  },
+  "micro_interactions": {
+    "hover": "Subtle -translate-y-1 and shadow increase for all cards",
+    "active": "Tactile active:scale-95 for all buttons and Kanban cards to mimic physical pressing",
+    "status_change": "Animate layout changes using framer-motion (e.g. layoutId or simple layout prop) when moving cards between columns",
+    "add_to_order": "Spring animation pop on the cart icon/badge when an item is added"
+  },
+  "icons_library": "lucide-react",
+  "testing": {
+    "rules": "All interactive elements (buttons, inputs, order cards, menu items) MUST include a kebab-case data-testid attribute based on role. e.g., data-testid='order-submit-button', data-testid='kanban-card-123'."
+  },
+  "media": {
+    "images": [
+      {
+        "category": "Login Background / Empty State Ambient",
+        "url": "https://images.unsplash.com/photo-1631630259742-c0f0b17c6c10?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwxfHxjb3p5JTIwcGluZSUyMHdvb2QlMjBjYWJpbiUyMGludGVyaW9yfGVufDB8fHx8MTc4MTM5MDgzNXww&ixlib=rb-4.1.0&q=85",
+        "description": "Warm pine wood cabin interior with stove, perfectly matches the Chhaon Instagram aesthetic. Use as a blurred/dimmed background for login, or soft background for empty states."
+      },
+      {
+        "category": "Onboarding / Greeting Alternative",
+        "url": "https://images.unsplash.com/photo-1551927411-95e412943b58?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODl8MHwxfHNlYXJjaHwyfHxjb3p5JTIwcGluZSUyMHdvb2QlMjBjYWJpbiUyMGludGVyaW9yfGVufDB8fHx8MTc4MTM5MDgzNXww&ixlib=rb-4.1.0&q=85",
+        "description": "Cabin window view during winter. Good for secondary onboarding screens or hero banner within admin settings."
+      }
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Prioritize mobile-first view: the POS needs to be operated by a volunteer holding a phone. Touch targets must be at least 48px.",
+    "Do not use generic SaaS Purple or Blue. Stick strictly to the Sage Green (#8A9A86) and Warm Tan (#B88A6B) palette.",
+    "Use Caveat font for playful, hand-written greetings (e.g., 'Your Quiet Corner in the Chaos' on the dashboard empty state). Use Figtree for all operational data (prices, names, statuses).",
+    "Kanban board should scroll horizontally on mobile devices, with snap points if possible.",
+    "Implement the specific color-coded status badges precisely as defined in colors.kanban_status to ensure fast visual scanning by the staff.",
+    "Kitchen View should strictly be a large-card grid, prioritizing 'Oldest First' active orders. Use large fonts for item quantities.",
+    "Ensure Shadcn components (Dialogs, Selects, Inputs) are heavily customized to remove the 'Vercel-look'. Round the corners to xl/2xl and use the earthy border colors."
+  ]
+}

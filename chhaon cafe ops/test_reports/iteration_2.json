@@ -1,0 +1,35 @@
+{
+  "summary": "Re-validated full Chhaon Cafe Ops system after httpOnly-cookie auth migration. Backend: 22/22 pytest pass (auth, menu, orders, dashboard, supply, team, role-gating). Frontend: full cookie-auth regression PASS — login sets cookie, /orders renders kanban, refresh persists session, logout clears cookie. Cookie attributes verified via curl: HttpOnly; Secure; SameSite=lax; Max-Age=2592000 (30 days); Path=/. No token in localStorage. document.cookie does NOT expose chhaon_access (HttpOnly enforced). Bearer-token fallback still works (all backend tests use it).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/backend_test.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py is now 757 lines — exceeds the 700-line guideline. Recommend splitting into routers/auth.py, routers/menu.py, routers/orders.py, routers/supply.py, routers/dashboard.py for maintainability.",
+    "CORS_ORIGINS now explicit (no wildcard) and allow_credentials=True — correct combination for cookie-based auth. Verified via /api/auth/login set-cookie response.",
+    "Cookie config: HttpOnly + Secure + SameSite=lax + Max-Age=30d + Path=/ — all matches PRD. Cookie is correctly cleared on /api/auth/logout (response.delete_cookie).",
+    "get_current_user reads cookie first then Bearer header — clean fallback for automated tests/non-browser clients.",
+    "Bcrypt $2b$ hashes, JWT HS256, JWT_SECRET sourced from env, ADMIN_MOBILE/PASSWORD seed is idempotent (updates hash if env changes). All match playbook.",
+    "No brute-force lockout (5-fails rule) implemented. Not blocking, but mentioned in playbook_testing_instructions as optional hardening.",
+    "axios in /app/frontend/src/lib/api.js uses withCredentials:true with NO Authorization interceptor, and a 401 interceptor redirects to /login — clean cookie-only client design.",
+    "AuthContext uses useMemo for context value (avoids unnecessary re-renders) and fetchMe() on mount to restore session from cookie — correct pattern."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "100% (22/22 pytest)", "frontend": "100% of tested flows (10/10 steps)"},
+  "test_credentials": "Admin: 9625005516 / pahaadpremi (seeded). Staff: 9000000077 / test1234 (created during pytest, deleted in test_create_and_delete_user fixture cycle).",
+  "seed_data_creation": "Pytest creates and tears down TEST_Item menu item, TEST_Guest/Flow/Act orders (some 'preparing' orders remain — safe to keep), TEST_Spice supply, and ephemeral test users. Several orders from previous iterations are still in the DB but visible only on the kanban as Preparing/Ready — does not affect any tests.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Cookie auth migration is complete and fully verified. Cookie name is 'chhaon_access' (env COOKIE_NAME). To call protected endpoints from pytest/curl, either use the cookie from session OR pass Authorization: Bearer <token-from-cookie> header. Login response no longer returns access_token in JSON body — it only returns {user: ...}. If you need a Bearer token, read it from response cookies after login (see admin_token fixture in /app/backend/tests/backend_test.py). /app/memory/test_credentials.md still documents Bearer header usage which remains valid as fallback. server.py has crossed the 700-line guideline — flag for future refactor.",
+  "rca of the issue": "No issues found. Auth migration is clean."
+}

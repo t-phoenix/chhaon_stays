@@ -1,0 +1,9 @@
+include ':app'
+include ':capacitor-cordova-android-plugins'
+project(':capacitor-cordova-android-plugins').projectDir = new File('./capacitor-cordova-android-plugins/')
+include ':cafe-mesh-discovery'
+project(':cafe-mesh-discovery').projectDir = new File('../plugins/cafe-mesh-discovery/android')
+include ':cafe-mesh-signaling'
+project(':cafe-mesh-signaling').projectDir = new File('../plugins/cafe-mesh-signaling/android')
+
+apply from: 'capacitor.settings.gradle'
