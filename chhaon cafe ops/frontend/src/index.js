@@ -36,7 +36,18 @@ root.render(
 );
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => undefined);
+  window.addEventListener("load", async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      // Drop stale workers from earlier deploys (v1/v2 cached index.html for assets).
+      for (const reg of regs) {
+        if (reg.active?.scriptURL?.includes("/sw.js")) {
+          await reg.update();
+        }
+      }
+      await navigator.serviceWorker.register("/sw.js");
+    } catch {
+      /* offline / private mode */
+    }
   });
 }

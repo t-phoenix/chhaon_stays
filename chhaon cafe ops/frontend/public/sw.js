@@ -1,6 +1,6 @@
 /* Chhaon Cafe Ops — offline app shell cache */
-const CACHE = "chhaon-ops-v2";
-const SHELL = ["/", "/index.html", "/manifest.json"];
+const CACHE = "chhaon-ops-v3";
+const SHELL = ["/manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -21,18 +21,27 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   if (request.method !== "GET") return;
+
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api") || url.pathname.startsWith("/static/js")) return;
+
+  // Never intercept API or webpack bundles — stale SW + SPA fallback caused
+  // "Unexpected token '<'" when /static/js/*.js returned cached index.html.
+  if (url.pathname.startsWith("/api") || url.pathname.startsWith("/static/")) return;
+
+  const isDocument =
+    request.mode === "navigate" ||
+    (request.headers.get("accept") || "").includes("text/html");
+
+  if (!isDocument) return;
 
   event.respondWith(
-    caches.match(request).then((cached) =>
-      cached ||
-      fetch(request).then((res) => {
+    fetch(request)
+      .then((res) => {
         const copy = res.clone();
         caches.open(CACHE).then((cache) => cache.put(request, copy));
         return res;
-      }).catch(() => caches.match("/index.html"))
-    )
+      })
+      .catch(() => caches.match("/index.html"))
   );
 });
