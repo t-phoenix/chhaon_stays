@@ -1632,6 +1632,31 @@ async def health():
     return {"ok": True}
 
 
+@api_router.get("/health/db")
+async def health_db():
+    """Diagnostic: confirms Render can reach MongoDB Atlas. Safe to curl after deploy."""
+    try:
+        await client.admin.command("ping")
+        user_count = await db.users.count_documents({})
+        has_settings = bool(await db.settings.find_one({"_id": "app"}))
+        return {
+            "ok": True,
+            "db": os.environ.get("DB_NAME"),
+            "users": user_count,
+            "settings_seeded": has_settings,
+        }
+    except Exception as e:
+        logger.error("health/db failed: %s", e)
+        return JSONResponse(
+            status_code=503,
+            content={
+                "ok": False,
+                "error": type(e).__name__,
+                "detail": str(e)[:300],
+            },
+        )
+
+
 app.include_router(api_router)
 
 app.add_middleware(

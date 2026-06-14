@@ -1,12 +1,12 @@
-# Render Blueprint — deploy from this folder (chhaon cafe ops) in the Render dashboard.
-# Docs: https://render.com/docs/blueprint-spec
+# Render Blueprint — rootDir is relative to the REPOSITORY ROOT (not this file's folder).
+# In Render dashboard: Blueprint Path = chhaon cafe ops/render.yaml (if not using repo-root copy).
 
 services:
   - type: web
     name: chhaon-cafe-ops-api
     runtime: python
     plan: free
-    rootDir: backend
+    rootDir: chhaon cafe ops/backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn server:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
