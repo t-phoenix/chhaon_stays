@@ -1,19 +1,21 @@
 import axios from "axios";
+import { attachAuthInterceptor, clearAccessToken } from "@/lib/authStorage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API_BASE = `${BACKEND_URL}/api`;
 
-// httpOnly cookies are sent automatically with withCredentials=true.
-// No JWT is stored on the client (XSS-safe).
 const api = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
 });
 
+attachAuthInterceptor(api);
+
 api.interceptors.response.use(
   (r) => r,
   (err) => {
     if (err?.response?.status === 401) {
+      clearAccessToken();
       if (!window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
       }

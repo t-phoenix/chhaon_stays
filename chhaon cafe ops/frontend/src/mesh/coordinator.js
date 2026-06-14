@@ -35,6 +35,7 @@ import {
 } from "@/mesh/transport";
 import { buildOp } from "@/mesh/merge";
 import { getOrCreateDeviceId } from "@/mesh/device";
+import { attachAuthInterceptor } from "@/lib/authStorage";
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API_BASE = `${BACKEND_URL}/api`;
@@ -43,6 +44,7 @@ const rawApi = axios.create({
   baseURL: API_BASE,
   withCredentials: true,
 });
+attachAuthInterceptor(rawApi);
 
 let syncing = false;
 let meshStarted = false;

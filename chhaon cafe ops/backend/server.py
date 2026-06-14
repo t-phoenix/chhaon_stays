@@ -92,6 +92,7 @@ class MeshOpsBatch(BaseModel):
 
 class LoginOut(BaseModel):
     user: UserOut
+    access_token: str
 
 
 class CreateUserPayload(BaseModel):
@@ -512,7 +513,7 @@ async def login(payload: LoginPayload, response: Response):
         raise HTTPException(status_code=401, detail="Invalid mobile or password")
     token = _create_access_token(str(user["_id"]), user["mobile"], user["role"])
     _set_auth_cookie(response, token)
-    return LoginOut(user=_user_out(user))
+    return LoginOut(user=_user_out(user), access_token=token)
 
 
 @api_router.post("/auth/staff-login", response_model=LoginOut)
@@ -523,7 +524,7 @@ async def staff_login(payload: StaffLoginPayload, response: Response):
     user = await _get_staff_session_user()
     token = _create_access_token(str(user["_id"]), user["mobile"], user["role"])
     _set_auth_cookie(response, token)
-    return LoginOut(user=_user_out(user))
+    return LoginOut(user=_user_out(user), access_token=token)
 
 
 @api_router.get("/auth/staff-passcode")
@@ -1555,6 +1556,11 @@ async def _seed():
     admin_password = os.environ.get("ADMIN_PASSWORD", "")
     admin_name = os.environ.get("ADMIN_NAME", "Admin")
 
+    if not admin_password:
+        logger.warning("ADMIN_PASSWORD not set — admin login will not work until it is set in env")
+    elif not admin_mobile:
+        logger.warning("ADMIN_MOBILE not set — admin user will not be seeded")
+
     if admin_mobile and admin_password:
         existing = await db.users.find_one({"mobile": admin_mobile})
         if not existing:
@@ -1638,12 +1644,15 @@ async def health_db():
     try:
         await client.admin.command("ping")
         user_count = await db.users.count_documents({})
-        has_settings = bool(await db.settings.find_one({"_id": "app"}))
+        settings = await db.settings.find_one({"_id": "app"}) or {}
         return {
             "ok": True,
             "db": os.environ.get("DB_NAME"),
             "users": user_count,
-            "settings_seeded": has_settings,
+            "admin_seeded": bool(await db.users.find_one({"role": "admin"})),
+            "staff_passcode_configured": bool(settings.get("staff_passcode_hash")),
+            "admin_env_set": bool(os.environ.get("ADMIN_MOBILE") and os.environ.get("ADMIN_PASSWORD")),
+            "bootstrap_needed": user_count == 0 or not settings.get("staff_passcode_hash"),
         }
     except Exception as e:
         logger.error("health/db failed: %s", e)
@@ -1681,17 +1690,32 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 @app.on_event("startup")
 async def startup_event():
+    db_ok = False
     try:
         await client.admin.command("ping")
+        db_ok = True
         logger.info("MongoDB ping OK (db=%s)", os.environ.get("DB_NAME"))
     except Exception as e:
         logger.error(
             "MongoDB ping FAILED — verify MONGO_URL, Atlas IP allowlist (0.0.0.0/0), and cluster status: %s",
             e,
         )
+    if not db_ok:
+        logger.error("Skipping seed — database unreachable")
+        return
     try:
         await _seed()
-        logger.info("Seed completed")
+        user_count = await db.users.count_documents({})
+        settings = await _get_settings()
+        logger.info(
+            "Seed completed (users=%s, staff_passcode=%s)",
+            user_count,
+            bool(settings.get("staff_passcode_hash")),
+        )
+        if user_count == 0 or not settings.get("staff_passcode_hash"):
+            logger.error(
+                "Bootstrap incomplete — set ADMIN_MOBILE + ADMIN_PASSWORD on Render, then Manual Deploy"
+            )
     except Exception as e:
         logger.exception(f"Seed failed: {e}")
 

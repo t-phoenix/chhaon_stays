@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from "react";
 import api from "@/lib/api";
+import { saveAccessToken, clearAccessToken } from "@/lib/authStorage";
 
 const AuthContext = createContext(null);
 
@@ -25,12 +26,14 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (mobile, password) => {
     const { data } = await api.post("/auth/login", { mobile, password });
+    saveAccessToken(data.access_token);
     setUser(data.user);
     return data.user;
   }, []);
 
   const staffLogin = useCallback(async (passcode) => {
     const { data } = await api.post("/auth/staff-login", { passcode });
+    saveAccessToken(data.access_token);
     setUser(data.user);
     return data.user;
   }, []);
@@ -40,6 +43,7 @@ export const AuthProvider = ({ children }) => {
       const { stopMesh } = await import("@/offline/sync");
       await stopMesh();
     } catch { /* ignore */ }
+    clearAccessToken();
     try {
       await api.post("/auth/logout");
     } catch {
