@@ -252,9 +252,27 @@ STAFF_SESSION_NAME = "Staff"
 
 # -------------------- Auth helpers --------------------
 JWT_ALG = "HS256"
+# -------------------- CORS / cookies --------------------
+def _parse_cors_origins() -> list[str]:
+    """Comma-separated origins; strips whitespace and stray quotes from .env."""
+    raw = os.environ.get("CORS_ORIGINS", "*").strip()
+    if raw == "*":
+        return ["*"]
+    origins = []
+    for part in raw.split(","):
+        origin = part.strip().strip('"').strip("'")
+        if origin:
+            origins.append(origin)
+    return origins or ["*"]
+
+
 COOKIE_NAME = os.environ.get("COOKIE_NAME", "chhaon_access")
 COOKIE_MAX_AGE = 60 * 60 * 24 * 30  # 30 days
 COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "true").lower() == "true"
+# Cross-origin SPA (e.g. Vercel → Render) requires SameSite=none + Secure for credentialed XHR.
+COOKIE_SAMESITE = os.environ.get("COOKIE_SAMESITE", "lax").lower()
+if COOKIE_SAMESITE not in ("lax", "strict", "none"):
+    COOKIE_SAMESITE = "lax"
 
 
 def _now() -> datetime:
@@ -317,14 +335,19 @@ def _set_auth_cookie(response: Response, token: str) -> None:
         value=token,
         httponly=True,
         secure=COOKIE_SECURE,
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
         max_age=COOKIE_MAX_AGE,
         path="/",
     )
 
 
 def _clear_auth_cookie(response: Response) -> None:
-    response.delete_cookie(key=COOKIE_NAME, path="/")
+    response.delete_cookie(
+        key=COOKIE_NAME,
+        path="/",
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+    )
 
 
 async def require_admin(user=Depends(get_current_user)) -> dict:
@@ -1605,7 +1628,7 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=_parse_cors_origins(),
     allow_methods=["*"],
     allow_headers=["*"],
 )
