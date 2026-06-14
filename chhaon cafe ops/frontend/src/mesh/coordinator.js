@@ -148,8 +148,18 @@ export async function cacheOrdersFromServer(orders) {
 }
 
 export async function cacheMenuFromServer(menu) {
+  if (!Array.isArray(menu) || !menu.length) return;
   await saveMenu(menu);
   await setMeta("menu_cached_at", Date.now());
+}
+
+export async function prefetchMenu() {
+  try {
+    const { data } = await rawApi.get("/menu", { params: { active_only: true } });
+    await cacheMenuFromServer(data);
+  } catch {
+    /* auth or network — cache fallback used on page load */
+  }
 }
 
 export async function readCachedOrders() {
@@ -181,17 +191,26 @@ export async function queueOrRun(config) {
         return { data: await getAllMenu(), fromCache: true };
       }
     }
-    const res = await rawApi.request(config);
-    if (config.url === "/orders" || config.url.startsWith("/orders?")) {
-      await cacheOrdersFromServer(Array.isArray(res.data) ? res.data : [res.data]);
+    try {
+      const res = await rawApi.request(config);
+      if (config.url === "/orders" || config.url.startsWith("/orders?")) {
+        await cacheOrdersFromServer(Array.isArray(res.data) ? res.data : [res.data]);
+      }
+      if (config.url === "/menu" || config.url.startsWith("/menu?")) {
+        await cacheMenuFromServer(res.data);
+      }
+      if (config.url?.match(/^\/orders\/[^/]+$/)) {
+        await upsertOrder({ ...res.data, _offline: false, _pending: false });
+      }
+      return res;
+    } catch (err) {
+      if (config.url === "/menu" || config.url.startsWith("/menu?")) {
+        const { getAllMenu } = await import("@/offline/db");
+        const cached = await getAllMenu();
+        if (cached.length) return { data: cached, fromCache: true };
+      }
+      throw err;
     }
-    if (config.url === "/menu" || config.url.startsWith("/menu?")) {
-      await cacheMenuFromServer(res.data);
-    }
-    if (config.url?.match(/^\/orders\/[^/]+$/)) {
-      await upsertOrder({ ...res.data, _offline: false, _pending: false });
-    }
-    return res;
   }
 
   const needsQueue = !online;
@@ -393,8 +412,10 @@ export function startAutoSync(intervalMs = 12000) {
     await flushQueue();
   };
   tick();
+  prefetchMenu();
   flushTimer = setInterval(tick, intervalMs);
   window.addEventListener("online", tick);
+  window.addEventListener("online", prefetchMenu);
 
   fetchMeshPinFromCloud(rawApi).then((pin) => {
     startMesh(pin).catch(() => {});

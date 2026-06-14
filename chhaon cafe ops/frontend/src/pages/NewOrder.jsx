@@ -32,8 +32,15 @@ const NewOrder = () => {
   const loadMenu = useCallback(async () => {
     try {
       const { data } = await api.get("/menu", { params: { active_only: true } });
-      setMenu(data);
+      setMenu(Array.isArray(data) ? data : []);
     } catch (e) {
+      const { getAllMenu } = await import("@/offline/db");
+      const cached = await getAllMenu();
+      const active = cached.filter((m) => m.active !== false);
+      if (active.length) {
+        setMenu(active);
+        return;
+      }
       toast.error(formatApiError(e));
     }
   }, []);

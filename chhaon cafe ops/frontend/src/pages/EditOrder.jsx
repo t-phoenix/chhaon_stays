@@ -31,8 +31,19 @@ const EditOrder = () => {
   const [cartOpen, setCartOpen] = useState(false);
 
   const loadMenu = useCallback(async () => {
-    const { data } = await api.get("/menu", { params: { active_only: true } });
-    setMenu(data);
+    try {
+      const { data } = await api.get("/menu", { params: { active_only: true } });
+      setMenu(Array.isArray(data) ? data : []);
+    } catch (e) {
+      const { getAllMenu } = await import("@/offline/db");
+      const cached = await getAllMenu();
+      const active = cached.filter((m) => m.active !== false);
+      if (active.length) {
+        setMenu(active);
+        return;
+      }
+      throw e;
+    }
   }, []);
 
   const loadOrder = useCallback(async () => {

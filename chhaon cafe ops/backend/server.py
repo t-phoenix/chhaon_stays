@@ -1625,6 +1625,9 @@ async def _seed():
             docs.append({**m, "active": True, "created_at": now})
         if docs:
             await db.menu_items.insert_many(docs)
+            logger.info("Seeded %s default menu items", len(docs))
+    else:
+        logger.info("Menu already seeded (%s items)", count)
 
 
 # -------------------- Routes mount + middleware --------------------
@@ -1644,15 +1647,17 @@ async def health_db():
     try:
         await client.admin.command("ping")
         user_count = await db.users.count_documents({})
+        menu_count = await db.menu_items.count_documents({})
         settings = await db.settings.find_one({"_id": "app"}) or {}
         return {
             "ok": True,
             "db": os.environ.get("DB_NAME"),
             "users": user_count,
+            "menu_items": menu_count,
             "admin_seeded": bool(await db.users.find_one({"role": "admin"})),
             "staff_passcode_configured": bool(settings.get("staff_passcode_hash")),
             "admin_env_set": bool(os.environ.get("ADMIN_MOBILE") and os.environ.get("ADMIN_PASSWORD")),
-            "bootstrap_needed": user_count == 0 or not settings.get("staff_passcode_hash"),
+            "bootstrap_needed": user_count == 0 or not settings.get("staff_passcode_hash") or menu_count == 0,
         }
     except Exception as e:
         logger.error("health/db failed: %s", e)
@@ -1707,15 +1712,19 @@ async def startup_event():
         await _seed()
         user_count = await db.users.count_documents({})
         settings = await _get_settings()
+        menu_count = await db.menu_items.count_documents({})
         logger.info(
-            "Seed completed (users=%s, staff_passcode=%s)",
+            "Seed completed (users=%s, menu_items=%s, staff_passcode=%s)",
             user_count,
+            menu_count,
             bool(settings.get("staff_passcode_hash")),
         )
         if user_count == 0 or not settings.get("staff_passcode_hash"):
             logger.error(
                 "Bootstrap incomplete — set ADMIN_MOBILE + ADMIN_PASSWORD on Render, then Manual Deploy"
             )
+        if menu_count == 0:
+            logger.error("Menu not seeded — check seed logs or redeploy")
     except Exception as e:
         logger.exception(f"Seed failed: {e}")
 
