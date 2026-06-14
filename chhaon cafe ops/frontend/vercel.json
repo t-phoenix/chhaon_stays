@@ -2,8 +2,5 @@
   "buildCommand": "yarn build",
   "installCommand": "yarn install",
   "outputDirectory": "build",
-  "rewrites": [
-    { "handle": "filesystem" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }
