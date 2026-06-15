@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import api, { formatApiError } from "@/offline/api";
+import { onSyncChange } from "@/offline/sync";
 import { toast } from "sonner";
 import { ChefHat, Bell, Check, Clock, BedDouble, MapPin, Phone } from "lucide-react";
 import {
@@ -7,6 +8,9 @@ import {
   NEXT_ITEM_LABEL_LONG,
   flattenOrderItems,
   itemStatusChip,
+  mergeOrdersFromServer,
+  mergeOrderWithLocal,
+  patchOrderItemStatus,
 } from "@/lib/orderUtils";
 
 const NEXT_ICON = { new: ChefHat, preparing: Bell, ready: Check };
@@ -15,24 +19,32 @@ const minutesAgo = (iso) => Math.floor((Date.now() - new Date(iso).getTime()) / 
 
 const Kitchen = () => {
   const [orders, setOrders] = useState([]);
-  const [busyKey, setBusyKey] = useState(null);
+  const [busyKeys, setBusyKeys] = useState(() => new Set());
   const [loading, setLoading] = useState(true);
+  const loadSeqRef = useRef(0);
+  const pendingAdvancesRef = useRef(new Set());
 
   const load = useCallback(async () => {
+    const seq = ++loadSeqRef.current;
     try {
       const { data } = await api.get("/orders", { params: { active_only: true, limit: 200 } });
-      setOrders(data);
+      if (seq !== loadSeqRef.current) return;
+      setOrders((prev) => mergeOrdersFromServer(data, prev, pendingAdvancesRef.current));
     } catch (e) {
       toast.error(formatApiError(e));
     } finally {
-      setLoading(false);
+      if (seq === loadSeqRef.current) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     load();
     const t = setInterval(load, 7000);
-    return () => clearInterval(t);
+    const unsub = onSyncChange(() => { load(); });
+    return () => {
+      clearInterval(t);
+      unsub();
+    };
   }, [load]);
 
   const tickets = useMemo(() => {
@@ -56,16 +68,32 @@ const Kitchen = () => {
 
   const advanceItem = async (ticket) => {
     const next = NEXT_ITEM[ticket.item.status];
-    if (!next) return;
-    setBusyKey(ticket.ticketKey);
+    if (!next || busyKeys.has(ticket.ticketKey)) return;
+
+    const prevStatus = ticket.item.status;
+    pendingAdvancesRef.current.add(ticket.ticketKey);
+    setBusyKeys((prev) => new Set(prev).add(ticket.ticketKey));
+    setOrders((prev) => patchOrderItemStatus(prev, ticket.orderId, ticket.lineId, next));
+
     try {
       const { data } = await api.patch(`/orders/${ticket.orderId}/items/${ticket.lineId}/status`, { status: next });
-      setOrders((prev) => prev.map((x) => (x.id === data.id ? data : x)));
+      setOrders((prev) =>
+        prev.map((x) => {
+          if (x.id !== data.id) return x;
+          return mergeOrderWithLocal(data, x, pendingAdvancesRef.current);
+        })
+      );
       toast.success(`${ticket.item.name} → ${next}`);
     } catch (e) {
+      setOrders((prev) => patchOrderItemStatus(prev, ticket.orderId, ticket.lineId, prevStatus));
       toast.error(formatApiError(e));
     } finally {
-      setBusyKey(null);
+      pendingAdvancesRef.current.delete(ticket.ticketKey);
+      setBusyKeys((prev) => {
+        const n = new Set(prev);
+        n.delete(ticket.ticketKey);
+        return n;
+      });
     }
   };
 
@@ -107,6 +135,7 @@ const Kitchen = () => {
           const min = minutesAgo(t.createdAt);
           const urgent = min >= 12 && t.item.status !== "ready";
           const chip = itemStatusChip(t.item.status);
+          const isBusy = busyKeys.has(t.ticketKey);
           return (
             <article
               key={t.ticketKey}
@@ -146,11 +175,11 @@ const Kitchen = () => {
 
               <button
                 data-testid={`kitchen-advance-${t.ticketKey}`}
-                disabled={busyKey === t.ticketKey}
+                disabled={isBusy}
                 onClick={() => advanceItem(t)}
                 className="mt-2 w-full h-9 sm:h-10 rounded-xl bg-ink text-white text-sm font-semibold inline-flex items-center justify-center gap-1.5 btn-tactile disabled:opacity-60"
               >
-                <Icon className="w-4 h-4" /> {NEXT_ITEM_LABEL_LONG[t.item.status]}
+                <Icon className="w-4 h-4" /> {isBusy ? "Saving…" : NEXT_ITEM_LABEL_LONG[t.item.status]}
               </button>
             </article>
           );

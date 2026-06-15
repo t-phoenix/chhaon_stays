@@ -171,10 +171,15 @@ a[href*="emergent.sh/?utm_source=emergent-badge"] {
 .toggle-track-sm > span { @apply w-4 h-4; }
 .toggle-track-md { @apply w-11 h-6; }
 .toggle-track-md > span { @apply w-5 h-5; }
-.peer:checked ~ .toggle-track-sm { @apply bg-sage; }
-.peer:checked ~ .toggle-track-sm > span { transform: translateX(1rem); }
-.peer:checked ~ .toggle-track-md { @apply bg-sage; }
-.peer:checked ~ .toggle-track-md > span { transform: translateX(1.25rem); }
+.peer:checked ~ .toggle-track-sm,
+.toggle-track-sm.is-on { @apply bg-sage; }
+.peer:checked ~ .toggle-track-sm > span,
+.toggle-track-sm.is-on > span { transform: translateX(1rem); }
+.peer:checked ~ .toggle-track-md,
+.toggle-track-md.is-on { @apply bg-sage; }
+.peer:checked ~ .toggle-track-md > span,
+.toggle-track-md.is-on > span { transform: translateX(1.25rem); }
+.toggle-track:disabled { @apply cursor-not-allowed; }
 
 /* Subtle paper texture */
 .bg-paper {

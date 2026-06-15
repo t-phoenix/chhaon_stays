@@ -1,5 +1,5 @@
 /* Chhaon Cafe Ops — offline app shell cache */
-const CACHE = "chhaon-ops-v3";
+const CACHE = "chhaon-ops-v4";
 const SHELL = ["/manifest.json"];
 
 self.addEventListener("install", (event) => {

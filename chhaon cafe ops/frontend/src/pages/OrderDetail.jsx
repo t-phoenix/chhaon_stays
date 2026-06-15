@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import api, { formatApiError } from "@/offline/api";
+import { onSyncChange } from "@/offline/sync";
 import { toast } from "sonner";
 import { ArrowLeft, Printer, BedDouble, MapPin, IndianRupee, Banknote, Smartphone, Pencil, Trash2, Phone } from "lucide-react";
-import { NEXT_ITEM, itemStatusChip, formatGuestMobile, normalizeMobile, isValidMobile } from "@/lib/orderUtils";
+import { NEXT_ITEM, itemStatusChip, formatGuestMobile, normalizeMobile, isValidMobile, mergeOrderWithLocal } from "@/lib/orderUtils";
 
 const inr = (n) => `₹${Number(n).toFixed(2)}`;
 
@@ -53,6 +54,11 @@ const OrderDetail = () => {
 
   useEffect(() => { load(); }, [load]);
 
+  useEffect(() => {
+    const unsub = onSyncChange(() => { load(); });
+    return unsub;
+  }, [load]);
+
   const subtotal = order ? Number(order.subtotal ?? order.total) : 0;
   const discountNum = Math.max(0, Number(discount) || 0);
   const amountDue = Math.max(0, Math.round((subtotal - discountNum) * 100) / 100);
@@ -61,7 +67,8 @@ const OrderDetail = () => {
     setBusy(true);
     try {
       const { data } = await api.patch(`/orders/${id}/items/${lineId}/status`, { status });
-      setOrder(data);
+      const nextOrder = data ? { ...data, items: (data.items || []).map((it) => ({ ...it })) } : data;
+      setOrder((prev) => (prev && nextOrder ? mergeOrderWithLocal(nextOrder, prev) : nextOrder));
       toast.success(`Marked ${status}`);
     } catch (e) {
       toast.error(formatApiError(e));

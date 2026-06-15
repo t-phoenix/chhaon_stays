@@ -2,13 +2,21 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import api, { formatApiError } from "@/lib/api";
 import { toast } from "sonner";
 import { Plus, Search, Edit3, Trash2, X } from "lucide-react";
+import ToggleSwitch from "@/components/ToggleSwitch";
 
 const Menu = () => {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("All");
-  const [editing, setEditing] = useState(null); // null = closed, {} = new, item = edit
+  const [editing, setEditing] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [optimisticActive, setOptimisticActive] = useState({});
+  const [togglingIds, setTogglingIds] = useState(() => new Set());
+
+  const displayActive = useCallback(
+    (m) => (optimisticActive[m.id] !== undefined ? optimisticActive[m.id] : m.active),
+    [optimisticActive]
+  );
 
   const load = useCallback(async () => {
     try {
@@ -25,11 +33,35 @@ const Menu = () => {
   const filtered = items.filter((m) => (cat === "All" || m.category === cat) && m.name.toLowerCase().includes(q.toLowerCase()));
 
   const toggleActive = async (m) => {
+    if (togglingIds.has(m.id)) return;
+    const targetActive = !displayActive(m);
+    setOptimisticActive((prev) => ({ ...prev, [m.id]: targetActive }));
+    setTogglingIds((prev) => new Set(prev).add(m.id));
     try {
-      const { data } = await api.patch(`/menu/${m.id}`, { active: !m.active });
+      const { data } = await api.patch(`/menu/${m.id}`, { active: targetActive });
       setItems((prev) => prev.map((x) => (x.id === m.id ? data : x)));
+      setOptimisticActive((prev) => {
+        const next = { ...prev };
+        delete next[m.id];
+        return next;
+      });
     } catch (e) {
-      toast.error(formatApiError(e));
+      setOptimisticActive((prev) => {
+        const next = { ...prev };
+        delete next[m.id];
+        return next;
+      });
+      toast.error(
+        !navigator.onLine
+          ? "No internet — menu changes need a connection"
+          : formatApiError(e)
+      );
+    } finally {
+      setTogglingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(m.id);
+        return next;
+      });
     }
   };
 
@@ -64,7 +96,6 @@ const Menu = () => {
     }
   };
 
-  // group filtered by category
   const grouped = useMemo(() => {
     const g = {};
     for (const m of filtered) {
@@ -126,48 +157,56 @@ const Menu = () => {
           <section key={category}>
             <div className="font-display text-3xl text-ink mb-2">{category}</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {list.map((m) => (
-                <div key={m.id} data-testid={`menu-row-${m.id}`} className={`bg-white rounded-2xl border p-4 shadow-soft transition-all ${m.active ? "border-oat/60" : "border-oat/40 opacity-70"}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="font-semibold text-ink truncate">{m.name}</div>
-                      <div className="text-[11px] uppercase tracking-[0.14em] text-ink2/80 font-semibold mt-0.5">{m.category}</div>
+              {list.map((m) => {
+                const isActive = displayActive(m);
+                const isToggling = togglingIds.has(m.id);
+                return (
+                  <div
+                    key={m.id}
+                    data-testid={`menu-row-${m.id}`}
+                    className={`bg-white rounded-2xl border p-4 shadow-soft transition-all ${isActive ? "border-oat/60" : "border-oat/40"}`}
+                  >
+                    <div className={`transition-opacity ${isActive ? "" : "opacity-60"}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-ink truncate">{m.name}</div>
+                          <div className="text-[11px] uppercase tracking-[0.14em] text-ink2/80 font-semibold mt-0.5">{m.category}</div>
+                        </div>
+                        <div className="font-display text-2xl text-ink leading-none">₹{m.price}</div>
+                      </div>
                     </div>
-                    <div className="font-display text-2xl text-ink leading-none">₹{m.price}</div>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between">
-                    <label className="flex items-center gap-2 select-none cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={m.active}
-                        onChange={() => toggleActive(m)}
-                        className="sr-only peer"
-                        data-testid={`menu-active-${m.id}`}
-                      />
-                      <span className="toggle-track toggle-track-sm">
-                        <span />
-                      </span>
-                      <span className="text-xs font-semibold text-ink2">{m.active ? "Active" : "Off"}</span>
-                    </label>
-                    <div className="flex items-center gap-1">
-                      <button
-                        data-testid={`menu-edit-${m.id}`}
-                        onClick={() => setEditing(m)}
-                        className="w-9 h-9 rounded-lg bg-white border border-oat hover:bg-cream inline-flex items-center justify-center btn-tactile"
-                      >
-                        <Edit3 className="w-4 h-4 text-ink2" />
-                      </button>
-                      <button
-                        data-testid={`menu-delete-${m.id}`}
-                        onClick={() => remove(m)}
-                        className="w-9 h-9 rounded-lg bg-white border border-oat hover:bg-statusNew/5 inline-flex items-center justify-center text-statusNew btn-tactile"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                    <div className="mt-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <ToggleSwitch
+                          active={isActive}
+                          disabled={isToggling}
+                          testId={`menu-active-${m.id}`}
+                          onToggle={() => toggleActive(m)}
+                        />
+                        <span className={`text-xs font-semibold min-w-[2.25rem] ${isActive ? "text-sage" : "text-ink2"}`}>
+                          {isToggling ? "…" : isActive ? "Active" : "Off"}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          data-testid={`menu-edit-${m.id}`}
+                          onClick={() => setEditing(m)}
+                          className="w-9 h-9 rounded-lg bg-white border border-oat hover:bg-cream inline-flex items-center justify-center btn-tactile"
+                        >
+                          <Edit3 className="w-4 h-4 text-ink2" />
+                        </button>
+                        <button
+                          data-testid={`menu-delete-${m.id}`}
+                          onClick={() => remove(m)}
+                          className="w-9 h-9 rounded-lg bg-white border border-oat hover:bg-statusNew/5 inline-flex items-center justify-center text-statusNew btn-tactile"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
         ))}
@@ -240,13 +279,18 @@ const MenuModal = ({ initial, onClose, onSave, busy, existingCategories }) => {
               className="mt-1.5 w-full h-12 rounded-xl bg-bone border border-oat px-4 focus:outline-none focus:ring-2 focus:ring-sage/40 focus:border-sage"
             />
           </div>
-          <label className="flex items-center gap-3 select-none cursor-pointer w-fit">
-            <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} className="sr-only peer" data-testid="menu-active-toggle" />
-            <span className="toggle-track toggle-track-md">
-              <span />
+          <div className="flex items-center gap-3">
+            <ToggleSwitch
+              active={active}
+              size="md"
+              testId="menu-active-toggle"
+              onToggle={() => setActive((v) => !v)}
+            />
+            <span className="text-sm font-semibold text-ink">
+              {active ? "Active" : "Off"}
+              <span className="text-ink2/70 font-normal"> — shows in new order</span>
             </span>
-            <span className="text-sm font-semibold text-ink">Active &nbsp;<span className="text-ink2/70 font-normal">— shows in new order</span></span>
-          </label>
+          </div>
         </div>
         <button
           onClick={() => onSave({ id: initial.id, name: name.trim(), category: category.trim(), price, active })}

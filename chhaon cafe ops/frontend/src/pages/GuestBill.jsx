@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate, Link, useSearchParams } from "react-router-dom";
 import api, { formatApiError } from "@/offline/api";
 import { readCachedOrders } from "@/offline/sync";
@@ -29,6 +29,7 @@ import {
   NEXT_ITEM_LABEL,
   itemStatusChip,
   isValidMobile,
+  mergeOrderWithLocal,
 } from "@/lib/orderUtils";
 
 const NEXT_ICON = { new: ChefHat, preparing: Bell, ready: Check };
@@ -64,6 +65,7 @@ const GuestBill = () => {
   const [paymentStatus, setPaymentStatus] = useState("paid");
   const [cashAmount, setCashAmount] = useState("0");
   const [upiAmount, setUpiAmount] = useState("0");
+  const pendingAdvancesRef = useRef(new Set());
 
   const load = useCallback(async () => {
     try {
@@ -147,18 +149,53 @@ const GuestBill = () => {
     });
   };
 
+  const patchBillOrderItem = (orderId, lineId, status) => {
+    setBill((prev) => {
+      if (!prev) return prev;
+      const orders = prev.orders.map((o) => {
+        if (o.id !== orderId) return o;
+        return {
+          ...o,
+          items: (o.items || []).map((it) =>
+            it.line_id === lineId ? { ...it, status } : it
+          ),
+        };
+      });
+      return { ...prev, orders };
+    });
+  };
+
   const advanceItem = async (order, item) => {
     const next = NEXT_ITEM[item.status || "new"];
     if (!next) return;
     const key = `${order.id}-${item.line_id}`;
+    if (busyKey === key) return;
+    const prevStatus = item.status || "new";
+    pendingAdvancesRef.current.add(key);
     setBusyKey(key);
+    patchBillOrderItem(order.id, item.line_id, next);
     try {
       const { data } = await api.patch(`/orders/${order.id}/items/${item.line_id}/status`, { status: next });
-      replaceOrderInBill(data);
-      toast.success(`${item.name} → ${NEXT_ITEM_LABEL[item.status || "new"] || next}`);
+      setBill((prev) => {
+        if (!prev) return prev;
+        const local = prev.orders.find((o) => o.id === data.id);
+        const merged = mergeOrderWithLocal(data, local, pendingAdvancesRef.current);
+        const orders = prev.orders.map((o) => (o.id === merged.id ? merged : o));
+        const subtotal = orders.reduce((a, o) => a + Number(o.subtotal ?? o.total ?? 0), 0);
+        const discountTotal = orders.reduce((a, o) => a + Number(o.discount_amount || 0), 0);
+        const amountDueNext = orders.reduce((a, o) => {
+          const sub = Number(o.subtotal ?? o.total ?? 0);
+          const disc = Number(o.discount_amount || 0);
+          return a + Math.max(0, sub - disc);
+        }, 0);
+        return { ...prev, orders, subtotal, discount_total: discountTotal, amount_due: amountDueNext };
+      });
+      toast.success(`${item.name} → ${NEXT_ITEM_LABEL[prevStatus] || next}`);
     } catch (e) {
+      patchBillOrderItem(order.id, item.line_id, prevStatus);
       toast.error(formatApiError(e));
     } finally {
+      pendingAdvancesRef.current.delete(key);
       setBusyKey(null);
     }
   };

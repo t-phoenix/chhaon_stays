@@ -5,6 +5,51 @@ export const ITEM_STATUSES = [
   { key: "served", label: "Served", sub: "Closed out", chip: "bg-[#F5F6F5] text-[#A3A8A1]", dot: "bg-[#A3A8A1]" },
 ];
 
+export const ITEM_STATUS_RANK = { new: 0, preparing: 1, ready: 2, served: 3 };
+export const itemStatusRank = (status) => ITEM_STATUS_RANK[status] ?? 0;
+
+/** Keep in-flight or ahead-of-server item statuses when a poll returns stale data. */
+export function mergeOrdersFromServer(incoming, current, pendingKeys = new Set()) {
+  const currentById = new Map((current || []).map((o) => [o.id, o]));
+  return (incoming || []).map((serverOrder) => {
+    const local = currentById.get(serverOrder.id);
+    if (!local) return serverOrder;
+    const mergedItems = (serverOrder.items || []).map((sItem) => {
+      const key = `${serverOrder.id}:${sItem.line_id}`;
+      const lItem = (local.items || []).find((i) => i.line_id === sItem.line_id);
+      if (pendingKeys.has(key)) return lItem || sItem;
+      if (lItem && itemStatusRank(lItem.status) > itemStatusRank(sItem.status)) return lItem;
+      return sItem;
+    });
+    return { ...serverOrder, items: mergedItems };
+  });
+}
+
+export function mergeOrderWithLocal(serverOrder, localOrder, pendingKeys = new Set()) {
+  if (!localOrder) return serverOrder;
+  const orderId = serverOrder.id;
+  const mergedItems = (serverOrder.items || []).map((sItem) => {
+    const key = `${orderId}:${sItem.line_id}`;
+    const lItem = (localOrder.items || []).find((i) => i.line_id === sItem.line_id);
+    if (pendingKeys.has(key)) return lItem || sItem;
+    if (lItem && itemStatusRank(lItem.status) > itemStatusRank(sItem.status)) return lItem;
+    return sItem;
+  });
+  return { ...serverOrder, items: mergedItems };
+}
+
+export function patchOrderItemStatus(orders, orderId, lineId, status) {
+  return orders.map((o) => {
+    if (o.id !== orderId) return o;
+    return {
+      ...o,
+      items: (o.items || []).map((it) =>
+        it.line_id === lineId ? { ...it, status } : it
+      ),
+    };
+  });
+}
+
 export const NEXT_ITEM = { new: "preparing", preparing: "ready", ready: "served" };
 export const NEXT_ITEM_LABEL = { new: "Start", preparing: "Ready", ready: "Served" };
 export const NEXT_ITEM_LABEL_LONG = { new: "Start preparing", preparing: "Mark ready", ready: "Mark served" };

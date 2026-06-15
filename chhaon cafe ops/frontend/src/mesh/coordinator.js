@@ -170,7 +170,11 @@ async function applyLocalPatch(orderId, mutator) {
   const orders = await readCachedOrders();
   const order = orders.find((o) => o.id === orderId);
   if (!order) return null;
-  const next = mutator(order);
+  const draft = {
+    ...order,
+    items: (order.items || []).map((it) => ({ ...it })),
+  };
+  const next = mutator(draft);
   next.updated_at = new Date().toISOString();
   next._pending = true;
   await upsertOrder(next);
@@ -236,12 +240,12 @@ export async function queueOrRun(config) {
       const parts = config.url.split("/");
       const orderId = parts[2];
       const lineId = parts[4];
-      const order = await applyLocalPatch(orderId, (o) => {
-        o.items = o.items.map((it) =>
+      const order = await applyLocalPatch(orderId, (o) => ({
+        ...o,
+        items: o.items.map((it) =>
           it.line_id === lineId ? { ...it, status: config.data.status } : it
-        );
-        return o;
-      });
+        ),
+      }));
       if (order) {
         await recordAndGossipOp({
           entity: "order",
