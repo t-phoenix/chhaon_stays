@@ -4,6 +4,8 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
 
+import hashlib
+import json
 import os
 import re
 import uuid
@@ -1507,38 +1509,164 @@ async def mesh_snapshot(
 
 
 # -------------------- Seed --------------------
+# Sourced from Chhaon Food Menu.pdf (June 2026)
 DEFAULT_MENU = [
+    # Cold Drinks
+    {"name": "Lemonade", "category": "Cold Drinks", "price": 120},
+    {"name": "Cold Coffee", "category": "Cold Drinks", "price": 180},
+    {"name": "Oreo Shake", "category": "Cold Drinks", "price": 200},
+    {"name": "Kit Kat Shake", "category": "Cold Drinks", "price": 200},
+    {"name": "Blue Berry Punch", "category": "Cold Drinks", "price": 150},
+    {"name": "Mango Punch", "category": "Cold Drinks", "price": 150},
+    # Hot Drinks
+    {"name": "Chai", "category": "Hot Drinks", "price": 60},
+    {"name": "Green Tea", "category": "Hot Drinks", "price": 80},
+    {"name": "Lemon Tea", "category": "Hot Drinks", "price": 80},
+    {"name": "Hot Coffee", "category": "Hot Drinks", "price": 120},
+    {"name": "Ginger Lemon Honey", "category": "Hot Drinks", "price": 80},
+    {"name": "Black Coffee", "category": "Hot Drinks", "price": 100},
+    {"name": "Black Tea", "category": "Hot Drinks", "price": 80},
+    {"name": "Hot Chocolate", "category": "Hot Drinks", "price": 250},
     # Breakfast
-    {"name": "Aloo Paratha", "category": "Breakfast", "price": 120},
-    {"name": "Paneer Paratha", "category": "Breakfast", "price": 150},
-    {"name": "Plain Paratha", "category": "Breakfast", "price": 80},
-    {"name": "Veg Omelette", "category": "Breakfast", "price": 110},
-    {"name": "Bread Butter Jam", "category": "Breakfast", "price": 90},
-    {"name": "Poha", "category": "Breakfast", "price": 80},
-    {"name": "Maggi", "category": "Breakfast", "price": 90},
-    # Beverages
-    {"name": "Masala Chai", "category": "Beverages", "price": 40},
-    {"name": "Black Tea", "category": "Beverages", "price": 30},
-    {"name": "Filter Coffee", "category": "Beverages", "price": 60},
-    {"name": "Hot Chocolate", "category": "Beverages", "price": 120},
-    {"name": "Lemon Honey Ginger Tea", "category": "Beverages", "price": 70},
+    {"name": "Plain Omelette", "category": "Breakfast", "price": 250},
+    {"name": "Masala Omelette", "category": "Breakfast", "price": 300},
+    {"name": "Sunny Side Up", "category": "Breakfast", "price": 250},
+    {"name": "Egg Bhurji", "category": "Breakfast", "price": 120},
+    {"name": "Scrambled Eggs", "category": "Breakfast", "price": 180},
+    {"name": "Shakshouka", "category": "Breakfast", "price": 100},
+    {"name": "Aloo Pyaaz Parantha", "category": "Breakfast", "price": 100},
+    {"name": "Gobhi Parantha", "category": "Breakfast", "price": 140},
+    {"name": "Paneer Parantha", "category": "Breakfast", "price": 160},
+    {"name": "Egg Parantha", "category": "Breakfast", "price": 180},
+    {"name": "Cheese Parantha", "category": "Breakfast", "price": 180},
+    {"name": "Chilla (2 Pc)", "category": "Breakfast", "price": 50},
+    {"name": "Butter Toast", "category": "Breakfast", "price": 180},
+    {"name": "Poha", "category": "Breakfast", "price": 220},
+    {"name": "Poori Bhaji (4 pc)", "category": "Breakfast", "price": 300},
+    {"name": "English Breakfast", "category": "Breakfast", "price": 300},
+    {"name": "Chocolate Pancake", "category": "Breakfast", "price": 300},
+    {"name": "Crepes", "category": "Breakfast", "price": 240},
+    {"name": "Chilly Cheese Omelette", "category": "Breakfast", "price": 220},
+    {"name": "Mushroom Olive Cheese Omelette", "category": "Breakfast", "price": 150},
+    {"name": "Cheese Omelette", "category": "Breakfast", "price": 200},
+    {"name": "Choice Of Eggs", "category": "Breakfast", "price": 140},
+    {"name": "2 Eggs with 2 Bread Toasts", "category": "Breakfast", "price": 160},
     # Chinese
-    {"name": "Veg Momos (8 pcs)", "category": "Chinese", "price": 140},
-    {"name": "Paneer Momos (8 pcs)", "category": "Chinese", "price": 180},
-    {"name": "Veg Hakka Noodles", "category": "Chinese", "price": 160},
-    {"name": "Veg Fried Rice", "category": "Chinese", "price": 160},
-    {"name": "Veg Manchurian", "category": "Chinese", "price": 180},
-    # Main Course
-    {"name": "Dal Tadka", "category": "Main Course", "price": 160},
-    {"name": "Steamed Rice", "category": "Main Course", "price": 90},
-    {"name": "Jeera Rice", "category": "Main Course", "price": 110},
-    {"name": "Paneer Butter Masala", "category": "Main Course", "price": 240},
-    {"name": "Mixed Veg Curry", "category": "Main Course", "price": 180},
-    {"name": "Roti (1 pc)", "category": "Main Course", "price": 20},
+    {"name": "Chilli Potato", "category": "Chinese", "price": 260},
+    {"name": "Spring Roll (Veg)", "category": "Chinese", "price": 250},
+    {"name": "Spring Roll (Chicken)", "category": "Chinese", "price": 280},
+    {"name": "Manchurian (Veg)", "category": "Chinese", "price": 270},
+    {"name": "Manchurian (Chicken)", "category": "Chinese", "price": 300},
+    {"name": "Chilli Paneer", "category": "Chinese", "price": 300},
+    {"name": "Chilli Mushroom", "category": "Chinese", "price": 300},
+    {"name": "Fried Rice (Veg)", "category": "Chinese", "price": 250},
+    {"name": "Fried Rice (Egg)", "category": "Chinese", "price": 280},
+    {"name": "Fried Rice (Chicken)", "category": "Chinese", "price": 300},
+    {"name": "Chilli Chicken (8-10 pc)", "category": "Chinese", "price": 350},
+    {"name": "Momos (Veg)", "category": "Chinese", "price": 250},
+    {"name": "Momos (Chicken)", "category": "Chinese", "price": 300},
+    # Starters
+    {"name": "Chilly Garlic Fries", "category": "Starters", "price": 240},
+    {"name": "Cheesy Chilly Garlic Fries", "category": "Starters", "price": 260},
+    {"name": "Classic Salted Fries", "category": "Starters", "price": 220},
+    {"name": "Peri Peri Fries", "category": "Starters", "price": 240},
+    {"name": "Cheese Balls (6 pc)", "category": "Starters", "price": 300},
+    {"name": "Veg Kebab", "category": "Starters", "price": 230},
+    {"name": "Chicken Kebab", "category": "Starters", "price": 250},
+    {"name": "Chicken Sausage", "category": "Starters", "price": 250},
+    {"name": "Honey Chilli Potato", "category": "Starters", "price": 280},
+    # Rice Bowl
+    {"name": "Italian Rice Bowl", "category": "Rice Bowl", "price": 350},
+    {"name": "Mushroom Mayhem", "category": "Rice Bowl", "price": 350},
+    {"name": "Mexican Hotpot", "category": "Rice Bowl", "price": 350},
     # Snacks
-    {"name": "Pakoras Plate", "category": "Snacks", "price": 130},
-    {"name": "French Fries", "category": "Snacks", "price": 130},
+    {"name": "Plain Maggi", "category": "Snacks", "price": 70},
+    {"name": "Veg Maggi", "category": "Snacks", "price": 120},
+    {"name": "Egg Maggi", "category": "Snacks", "price": 150},
+    {"name": "Cheese Maggi", "category": "Snacks", "price": 160},
+    {"name": "Bread Pakoda", "category": "Snacks", "price": 170},
+    {"name": "Masala Bread Pakoda", "category": "Snacks", "price": 200},
+    {"name": "Veg Pakoda", "category": "Snacks", "price": 200},
+    {"name": "Paneer Pakoda", "category": "Snacks", "price": 250},
+    {"name": "Chicken Pakoda", "category": "Snacks", "price": 280},
+    # Sandwiches & Wraps
+    {"name": "Veg Cheese Sandwich", "category": "Sandwiches & Wraps", "price": 250},
+    {"name": "Egg Caramelized Onion Sandwich", "category": "Sandwiches & Wraps", "price": 300},
+    {"name": "Corn Mushroom Olive Sandwich", "category": "Sandwiches & Wraps", "price": 300},
+    {"name": "Chicken Sandwich", "category": "Sandwiches & Wraps", "price": 300},
+    {"name": "Pasta (Alfredo)", "category": "Sandwiches & Wraps", "price": 300},
+    {"name": "Pasta (Arrabiata)", "category": "Sandwiches & Wraps", "price": 300},
+    {"name": "Crispy Chicken (8 pc)", "category": "Sandwiches & Wraps", "price": 450},
+    {"name": "Veg Wrap", "category": "Sandwiches & Wraps", "price": 300},
+    {"name": "Paneer Chipotle Wrap", "category": "Sandwiches & Wraps", "price": 350},
+    {"name": "Chicken Wrap", "category": "Sandwiches & Wraps", "price": 350},
+    # Breads
+    {"name": "Plain Roti", "category": "Breads", "price": 25},
+    {"name": "Butter Roti", "category": "Breads", "price": 35},
+    {"name": "Plain Parantha", "category": "Breads", "price": 70},
+    # Main Course — Non Veg
+    {"name": "Chicken Curry", "category": "Main Course", "price": 420},
+    {"name": "Pahadi Chicken", "category": "Main Course", "price": 430},
+    {"name": "Rara Chicken", "category": "Main Course", "price": 450},
+    {"name": "Butter Chicken", "category": "Main Course", "price": 450},
+    {"name": "Egg Curry", "category": "Main Course", "price": 320},
+    # Main Course — Veg Curries
+    {"name": "Mushroom Masala", "category": "Main Course", "price": 370},
+    {"name": "Kadhai Paneer", "category": "Main Course", "price": 370},
+    {"name": "Shahi Paneer", "category": "Main Course", "price": 350},
+    {"name": "Malai Kofta", "category": "Main Course", "price": 320},
+    {"name": "Rajma Masala", "category": "Main Course", "price": 250},
+    {"name": "Mix Veg", "category": "Main Course", "price": 280},
+    {"name": "Paneer Lababdar", "category": "Main Course", "price": 380},
+    {"name": "Dum Aloo", "category": "Main Course", "price": 250},
+    {"name": "Paneer Bhurji", "category": "Main Course", "price": 250},
+    # Dal
+    {"name": "Dal Fry", "category": "Dal", "price": 300},
+    {"name": "Dal Makhni", "category": "Dal", "price": 350},
+    # Rice
+    {"name": "Plain Rice", "category": "Rice", "price": 150},
+    {"name": "Jeera Rice", "category": "Rice", "price": 180},
+    {"name": "Butter Garlic Rice", "category": "Rice", "price": 200},
+    # Dessert
+    {"name": "Suji Ka Halwa", "category": "Dessert", "price": 150},
+    {"name": "Gulab Jamun (2pc)", "category": "Dessert", "price": 100},
+    {"name": "Moong Dal Halwa", "category": "Dessert", "price": 200},
+    {"name": "Shahi Tukda", "category": "Dessert", "price": 220},
+    {"name": "Waffle", "category": "Dessert", "price": 300},
+    {"name": "Kheer", "category": "Dessert", "price": 100},
+    {"name": "Deep Fried Oreos", "category": "Dessert", "price": 250},
 ]
+
+
+def _menu_seed_fingerprint() -> str:
+    canon = [
+        {"name": m["name"], "category": m["category"], "price": float(m["price"])}
+        for m in DEFAULT_MENU
+    ]
+    canon.sort(key=lambda x: (x["category"], x["name"]))
+    payload = json.dumps(canon, separators=(",", ":"), sort_keys=True)
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+async def _sync_menu_from_default() -> dict:
+    """Upsert DEFAULT_MENU into MongoDB and remove items no longer in the seed."""
+    now = _now().isoformat()
+    seed_keys = {(m["name"], m["category"]) for m in DEFAULT_MENU}
+    for m in DEFAULT_MENU:
+        await db.menu_items.update_one(
+            {"name": m["name"], "category": m["category"]},
+            {
+                "$set": {"price": float(m["price"]), "active": True},
+                "$setOnInsert": {"created_at": now},
+            },
+            upsert=True,
+        )
+    removed = 0
+    for doc in await db.menu_items.find({}, {"name": 1, "category": 1}).to_list(5000):
+        if (doc["name"], doc.get("category", "")) not in seed_keys:
+            await db.menu_items.delete_one({"_id": doc["_id"]})
+            removed += 1
+    return {"total": len(DEFAULT_MENU), "removed": removed}
 
 
 async def _seed():
@@ -1616,18 +1744,33 @@ async def _seed():
             )
             logger.info("Seeded default mesh PIN from MESH_PIN env")
 
-    # Seed menu if empty
-    count = await db.menu_items.count_documents({})
-    if count == 0:
-        docs = []
-        now = _now().isoformat()
-        for m in DEFAULT_MENU:
-            docs.append({**m, "active": True, "created_at": now})
-        if docs:
-            await db.menu_items.insert_many(docs)
-            logger.info("Seeded %s default menu items", len(docs))
+    # Sync menu from DEFAULT_MENU when seed changes (e.g. after git push + deploy)
+    menu_auto_sync = os.environ.get("MENU_AUTO_SYNC", "true").lower() not in ("0", "false", "no")
+    menu_count = await db.menu_items.count_documents({})
+    seed_hash = _menu_seed_fingerprint()
+    settings = await _get_settings()
+    stored_hash = settings.get("menu_seed_hash")
+
+    if menu_auto_sync and (menu_count == 0 or stored_hash != seed_hash):
+        stats = await _sync_menu_from_default()
+        await db.settings.update_one(
+            {"_id": "app"},
+            {"$set": {
+                "menu_seed_hash": seed_hash,
+                "menu_seed_synced_at": _now().isoformat(),
+            }},
+            upsert=True,
+        )
+        logger.info(
+            "Synced menu from DEFAULT_MENU (%s items, %s removed, hash=%s…)",
+            stats["total"],
+            stats["removed"],
+            seed_hash[:12],
+        )
+    elif menu_auto_sync:
+        logger.info("Menu already in sync (%s items)", menu_count)
     else:
-        logger.info("Menu already seeded (%s items)", count)
+        logger.info("MENU_AUTO_SYNC disabled — skipped menu sync (%s items)", menu_count)
 
 
 # -------------------- Routes mount + middleware --------------------
